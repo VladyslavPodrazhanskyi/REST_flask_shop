@@ -33,99 +33,75 @@ class Item(Resource):
         if row:
             return {'item': {'name': row[0], 'price': row[1]}}
 
-
     def post(self, name):
-        # if next(filter(lambda x: x['name'] == name, items), None):
         if self.find_by_name(name):
             return {'message': f'item {name} already exists'}, 400
-        # data = request.get_json()              # Content-Type  application/json - set header in postman
+
         data = Item.parser.parse_args()
         item = {'name': name, 'price': data['price']}
-        # items.append(item)
+
+        try:
+            self.insert(item)
+        except:
+            return {"message": "An error occurred inserting the item"}, 500  # internal server error
+
+        return item, 201
+
+    @classmethod
+    def insert(cls, item):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         query = "INSERT INTO items VALUES (?, ?)"
         cursor.execute(query, (item['name'], item['price']))
         connection.commit()
         connection.close()
-        return item, 201
-
-    # def delete(self, name):
-    #     item = next(filter(lambda x: x['name'] == name, items), None)
-    #     if item:
-    #         items.remove(item)
-    #         return {'message': f'item {name} was deleted'}
-    #     return {'message': f'item {name} does not exist'}, 404
 
     def delete(self, name):
         if self.find_by_name(name):
             connection = sqlite3.connect('data.db')
             cursor = connection.cursor()
             query = "DELETE FROM items WHERE name=?"
-            cursor.execute(query, (name, ))
+            cursor.execute(query, (name,))
             connection.commit()
             connection.close()
             return {'message': f'item {name} was deleted'}
         return {'message': f'item {name} does not exist'}, 404
 
-        # global items
-        # items = list(filter(lambda x: x['name'] != name, items))
-        # return {'message': f'item {name} was deleted'}
-
     def put(self, name):
         data = Item.parser.parse_args()
+        item = self.find_by_name(name)
+        updated_item = {'name': name, 'price': data['price']}
+        if item is None:
+            try:
+                self.insert(updated_item)
+            except:
+                return {"message": "An error occurred inserting the item"}, 500
+        else:
+            try:
+                self.update(updated_item)
+            except:
+                return {"message": "An error occurred updating the item"}, 500
+
+        return updated_item
+
+    @classmethod
+    def update(cls, item):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
-        item = {'name': name, 'price': data['price']}
-        # if item with name exists:
-        if self.find_by_name(name):
-            query = "UPDATE items " \
-                    "SET price=?," \
-                    "WHERE name=?"
-            cursor.execute(query, (item['price'], name))
-        # if item with name does not exist:
-        else:
-            query = "INSERT INTO items VALUES (?, ?)"
-        cursor.execute(query, (item['name'], item['price']))
+        query = "UPDATE items SET price=? WHERE name=?"
+        cursor.execute(query, (item['price'], item['name']))
         connection.commit()
         connection.close()
-        return item
-
-
-
-
-
-        # item = next(filter(lambda x: x['name'] == name, items), None)
-        # # data = request.get_json()
-        # if item is None:
-        #     item = {'name': name, 'price': data['price']}
-        #     items.append(item)
-        # else:
-        #     item.update(data)
-        # return item
-
-    # def put(self, name):
-    #     data = request.get_json()
-    #     for item in items:
-    #         if item['name'] == name:
-    #             item['price'] = data['price']
-    #             return {'message': f'item {name} was updated'}
-    #     items.append({'name': name, 'price': data['price']})
-    #     return {'message': f'item {name} was created'}
-
-    # def put(self, name):
-    #     data = Item.parser.parse_args()
-    #     item = next(filter(lambda x: x['name'] == name, items), None)
-    #     # data = request.get_json()
-    #     if item is None:
-    #         item = {'name': name, 'price': data['price']}
-    #         items.append(item)
-    #     else:
-    #         item.update(data)
-    #     return item
 
 
 class ItemList(Resource):
     def get(self):
-        return {'items': items}
-
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        query = "SELECT * FROM items"
+        result = cursor.execute(query)
+        items = []
+        for row in result:
+            items.append({"name": row[0], "price": row[1]})
+        connection.close()
+        return {"items": items}
