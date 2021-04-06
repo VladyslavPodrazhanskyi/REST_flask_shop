@@ -65,7 +65,9 @@ username and password from the client adding it to db.
 17. Adding items to db -  Class Item method post (video 84)
 18. Deleting item from Db Class Item method delete (video 85)
 19. Update item in db  Class Item method put
-19.1 Extract code from method to put to separate method that will be used for put also ( DRY )
+19.1 Extract code from method to put to separate method that will be used for put also ( DRY )  - video 86
+
+
 '''
 
 
