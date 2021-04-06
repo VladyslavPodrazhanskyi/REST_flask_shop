@@ -10,7 +10,7 @@ cursor.execute(create_table)
 create_table = "CREATE TABLE IF NOT EXISTS items (name text, price real)"
 cursor.execute(create_table)
 
-# cursor.execute("INSERT INTO items VALUES ('test_item', 10.99)")   # test insert before code put method for items
+# cursor.execute("INSERT INTO items VALUES ('test_item', 10.99)")   # test insert before 2.code_sql_crude put method for items
 
 connection.commit()
 connection.close()
