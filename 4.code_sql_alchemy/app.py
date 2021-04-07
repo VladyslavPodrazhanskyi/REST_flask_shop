@@ -1,3 +1,4 @@
+'''app.py
 JWT  -  json web token   ( userid - is encoded and given to the user, the client gives the password to the server
 server receive JWT to be sure that the client is authenticated
 1. Install Flask_JWT
@@ -64,60 +65,34 @@ username and password from the client adding it to db.
 17. Adding items to db -  Class Item method post (video 84)
 18. Deleting item from Db Class Item method delete (video 85)
 19. Update item in db  Class Item method put
-19.1 Extract code from method to put to separate method that will be used for put also ( DRY )  - video 86
+19.1 Extract 2.code_sql_crude from method to put to separate method that will be used for put also ( DRY )  - video 86
 @classmethod    def insert(cls, item)
 19.2 Reformat method put using classmethod insert
 19.3. Create classmethod def update(cls, item), reformat method put using both insert and update classmethods.
 20. Reformat class ItemList
-21. Save code with tag sql_crude
+'''
 
-======================================================================
 
-Section 6: Simplifying storage with Flask-SQLAlchemy
+from flask import Flask
+from flask_restful import Api
+from flask_jwt import JWT
 
-6.1 Reformat files ( separate Models and Resources without using sqlachemy)
-DIRECTORY 3.code_sql_crude_reformed
+from security import authenticate, identity
+from resources.user import UserRegister
+from resources.item import Item, ItemList
 
-1. Reformat directories and create directory 3.code_sql_alchemy for current version of the project
-1.1. We need following files from previouse version:
-app.py, create_tables.py, item.py, security.py, user.py
-1.2. pip install Flask-SQLAlchemy, create requrement.txt for new project
+app = Flask(__name__)
+app.secret_key = b'\x18$\x93\xbf\x9c\xc5\x9c\xd4{\t\xfc\x07y\x89=\xf6\x9a\xc8[\xffG\xea\x97\x13'
 
-2. Improving the project structure and its maitainability (video 92)
-2.1. Create 2 packages: models and resources
-2.2. Move files that contain class Resources to resources package ( item.py, user.py),
-we will remove class User from user.py later as it is not a Resource class
-correct imports files: app.py, security.py
+api = Api(app)
 
-3. Create User and Item models (video 93):
-3.1. Create file user.py in the package models and move class User to it from user.py in resource package
-rename class User to UserModel
-correct imports and change User to UserModel everywhere
-3.2. Create item.py in the package models, create class ItemModel in it.
-class ItemModel:
-    def __init__(self, name, price):
-        self.name = name
-        self.price = price
+# /auth (by default)
+jwt = JWT(app, authenticate, identity)
 
-    def json(self):
-        return {"name": self.name, "price": self.price}
+api.add_resource(Item, "/item/<string:name>")
+api.add_resource(ItemList, "/items")
+api.add_resource(UserRegister, "/register")
 
-3.3 Move class methods from Item(Resource) to class ItemModel:
-@classmethod
-    def find_by_name(cls, name):    # is class method as constructor
-def insert(self):  # become instance method
-def update(self):   # become instance method
-3.4. Correct resources\item.py  -  change classmethods(insert and update) to instance methods
-change return instead of item as dict to item.json()
-3.5. Tesing corrected app in postman. Create new collections in postman,
-section 6.
-4. Advance postman usage( video - 95):
-4.1. Create enviroments for section 6:
-set for key url value http://127.0.0.1:5000 and change in the request of section 6 {{url}}
-4.2.Set for key jwt_token value of actual jwt token in the header of request
-4.3. /auth  -  Tests:
-var jsonData = JSON.parse(responseBody) - set var jsonData ( receive data from response from server -  JWT token
-tests["Aceess token is not empty"] = jsonData.access_token !== undefined; - test if JWT token is not empty
-pm.environment.set("jwt_token", jsonData.access_token); setting for environment value current JWT token automatically
-we can check also status code of response, time of response and use other snippets for testing.
-5.
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
