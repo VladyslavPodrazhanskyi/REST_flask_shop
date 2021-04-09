@@ -120,4 +120,64 @@ var jsonData = JSON.parse(responseBody) - set var jsonData ( receive data from r
 tests["Aceess token is not empty"] = jsonData.access_token !== undefined; - test if JWT token is not empty
 pm.environment.set("jwt_token", jsonData.access_token); setting for environment value current JWT token automatically
 we can check also status code of response, time of response and use other snippets for testing.
-5.
+
+6.2. Using SQLAlchemy ( DIRECTORY 4.code_sql_alchemy)
+
+1.Create file db.py:
+
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
+initiate db to the application in the app.py
+if __name__ == '__main__':
+    db.init_app(app)
+    app.run(debug=True, port=5000)
+
+set configuration for db:
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+2. Correct ItemModel and UserModel
+set table names
+columns for both Models (tables)
+set id for ItemModel also as it was for UserModel
+
+3. Correct create_table.py:
+
+add id for item
+create new db : python create_tables.py
+
+4. Implementing ItemModel using SQLAlchemy (video 98):
+4.1. Change ItemModel using SQLAlchemy
+4.2. Update Resources in accordance with above changes
+4.3 Longtime debugging before everything works
+
+5. Implementing UserModel using SQLAlchemy (video 99):
+5.1. update classmethods - find_by_username and find_by_id
+5.2. implement method save_to_db
+5.3. update code of class UserRegister(Resource) - method post.
+
+6.Update ItemList (video 100)
+
+7. Delete create_tables.py (video 101)
+Make sqlalchemy create db itself in app.py
+@app.before_first_request
+def create_tables():
+    db.create_all()
+As soon as you make first request new DB and all the models are created
+before the first request.
+
+8. Creating a new Model: StoreModel ( video 102):
+8.1. Store -  a shop where are stored items
+Each item has 1 store, but each store has many items
+(relation one to many) - one store to many items.
+8.2 Update class Item(Resource) -  add new argument store_id in the parser,
+add field store_id in the methods post and put.
+
+8.2. add store_id field for ItemModel.
+
+9. Creating new Resources in models/store.py: Store, StoreList ( video 103)
+Add them to app.py
+
+10. Final testing of the created API (video 104)
+
+
